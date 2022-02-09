@@ -1,0 +1,231 @@
+package compiler;
+import java_cup.runtime.*;
+
+
+parser code {:
+    private lexic lex;
+    public parser(lexic lex){
+        this.lex = lex;
+    }
+:}
+
+scan with {:
+    return lexer.next_token();
+:}
+
+// Operator terminals
+terminal minus_t, plus_t, assign_t, multi_t, divide_t, remind_t;
+terminal equal_t, not_equal_t, great_t, great_equal_t, less_t, less_equal_t;
+terminal and_t, or_t, not_t;
+terminal dot_t, colon_t, semi_colon_t;
+terminal open_parantheses_t, close_parantheses_t, open_brace_t, close_brace_t, open_bracket_t, close_bracket_t, open_close_brace_t;
+
+// Keywords terminals
+terminal class_t, string_t, int_t, double_t, bool_t, interface_t, void_t;
+terminal if_t, else_t, for_t, while_t, break_t, return_t, null_t, this_t, extends_t, implements_t;
+terminal new_t, newArray_t, print_t, continue_t, Readinteger_t , Readline_t, dtoi_t, itod_t, btoi_t, itob_t;
+terminal private_t, protected_t, public_t;
+terminal array_t;//ino check kon****
+
+// Identifier terminal
+terminal String   id_t;
+
+// Literals terminals
+terminal Boolean boolean_literal_t;
+terminal String string_literal_t;
+terminal Integer int_literal_t;
+terminal Double double_literal_t;
+
+// defining nonterminals
+nonterminal     Program, DeclStar, Decl, VariableDecl, Variable, FunctionDecl, Formals, CommaVariables,
+				ClassDecl, ClassDeclExtends, ClassDeclImplements, CommaIdentifiers, FieldStar, Field,
+				AccessMode, InterfaceDecl, PrototypeStar, Prototype, StmtBlock, InsideStmtBlock, VariableDeclStar, StmtStar,
+				Stmt, ExprPrime, IfStmt, ElsePrime, WhileStmt, ForStmt, ReturnStmt, BreakStmt, ContinueStmt, PrintStmt,
+				PrintCommaExpr, ActualsCommaExpr, Actuals;
+
+// non-terminals with type
+nonterminal     Object Type;
+nonterminal     Descriptor LValue;
+nonterminal     Descriptor Expr;
+nonterminal     CompileTimeDescriptor Constant;
+nonterminal     Descriptor Call;
+nonterminal     Prototypes;
+
+
+
+precedence left else_t;
+precedence left assign_t;
+precedence left or_t;
+precedence left and_t;
+precedence left equal_t, not_equal_t;
+precedence left less_t, less_equal_t, great_t, great_equal_t;
+precedence left plus_t, minus_t;
+precedence left multi_t, divide_t, remind_t;
+precedence left not_t;
+precedence left dot_t , open_brace_t;
+precedence left open_parantheses_t ,open_bracket_t;
+
+
+
+
+// Parser Grammar Declaration
+Program          ::= Decl 	DeclStar;
+
+DeclStar         ::= Decl DeclStar
+						| /*epsilon*/
+						;
+
+Decl             ::= VariableDecl
+                   | FunctionDecl
+                   | ClassDecl
+                   | InterfaceDecl;
+
+VariableDecl     ::= Variable semi_colon_t;
+
+Variable         ::= Type id_t;
+
+Type             ::= int_t
+                   | double_t
+                   | bool_t
+                   | string_t
+				   | id_t
+                   | Type open_close_brace_t;
+
+FunctionDecl     ::= Type id_t open_parantheses_t Formals close_parantheses_t StmtBlock
+                   | void_t id_t open_parantheses_t Formals close_parantheses_t StmtBlock ;
+
+
+Formals           ::= Variable CommaVariables
+                   | ;
+
+CommaVariables ::=      colon_t Variable CommaVariables
+						| /*epsilon*/
+						;
+
+ClassDecl        ::= class_t id_t ClassDeclExtends ClassDeclImplements  open_bracket_t FieldStar close_bracket_t;
+
+ClassDeclExtends      ::= extends_t id_t
+                   | ;
+
+ClassDeclImplements    ::= implements_t id_t CommaIdentifiers
+                   | ;
+
+CommaIdentifiers ::=    colon_t id_t CommaIdentifiers
+						| /*epsilon*/
+						;
+
+StmtBlock        ::= open_bracket_t InsideStmtBlock close_bracket_t;
+
+InsideStmtBlock ::=     VariableDecl InsideStmtBlock
+						| StmtStar
+						;
+StmtStar ::=            Stmt StmtStar
+						| /*epsilon*/
+						;
+
+Stmt             ::= ExprPrime semi_colon_t
+                   | IfStmt
+                   | WhileStmt
+                   | ForStmt
+                   | BreakStmt
+                   | ContinueStmt
+                   | ReturnStmt
+                   | PrintStmt
+                   | StmtBlock;
+
+ExprPrime ::=           Expr
+						| /*epsilon*/
+						;
+
+Expr             ::= LValue assign_t Expr
+                   | Constant
+                   | LValue
+                   | this_t
+                   | Call
+                   | open_parantheses_t Expr close_parantheses_t
+                   | Expr plus_t Expr
+                   | Expr minus_t Expr
+                   | Expr multi_t Expr
+                   | Expr divide_t Expr
+                   | Expr remind_t Expr
+                   | minus_t Expr
+                   | Expr less_t Expr
+                   | Expr less_equal_t Expr
+                   | Expr great_t Expr
+                   | Expr great_equal_t Expr
+                   | Expr equal_t Expr
+                   | Expr not_equal_t Expr
+                   | Expr and_t Expr
+                   | Expr or_t Expr
+                   | not_t Expr
+                   | Readinteger_t open_parantheses_t close_parantheses_t
+                   | Readline_t open_parantheses_t close_parantheses_t
+                   | new_t id_t
+                   | newArray_t open_parantheses_t Expr colon_t Type close_parantheses_t
+                   | itod_t open_parantheses_t Expr close_parantheses_t
+                   | dtoi_t open_parantheses_t Expr close_parantheses_t
+                   | itob_t open_parantheses_t Expr close_parantheses_t
+                   | btoi_t open_parantheses_t Expr close_parantheses_t;
+
+FieldStar ::=           Field FieldStar
+						| /*epsilon*/
+						;
+
+Field            ::= AccessMode VariableDecl
+                   | AccessMode FunctionDecl;
+
+AccessMode       ::= private_t
+                   | protected_t
+                   | public_t
+                   | ;
+
+IfStmt           ::= if_t open_parantheses_t Expr close_parantheses_t Stmt ElsePrime;
+
+ElsePrime ::=           else_t Stmt | ;
+
+
+
+WhileStmt        ::= while_t open_parantheses_t Expr close_parantheses_t Stmt;
+
+
+ForStmt          ::= for_t open_parantheses_t ExprPrime semi_colon_t Expr semi_colon_t ExprPrime close_parantheses_t Stmt;
+
+
+
+ReturnStmt       ::= return_t ExprPrime semi_colon_t;
+
+
+BreakStmt        ::= break_t semi_colon_t;
+
+ContinueStmt     ::= continue_t semi_colon_t;
+
+PrintStmt        ::= print_t open_parantheses_t Expr PrintCommaExpr close_parantheses_t semi_colon_t;
+
+PrintCommaExpr   ::= colon_t Expr PrintCommaExpr | ;
+
+
+
+InterfaceDecl    ::= interface_t id_t open_bracket_t Prototypes close_bracket_t;
+
+Prototypes       ::= /*Prototypes Prototype*/ Prototype Prototypes
+                   | /*Prototype*/;
+
+Prototype        ::= Type id_t open_parantheses_t Formals close_parantheses_t semi_colon_t
+                   | void_t id_t open_parantheses_t Formals close_parantheses_t semi_colon_t;
+
+LValue           ::= id_t
+                   | Expr dot_t id_t
+                   | Expr open_brace_t Expr close_brace_t;
+
+Call             ::= id_t open_parantheses_t Actuals close_parantheses_t
+                   | Expr dot_t id_t open_parantheses_t Actuals close_parantheses_t;
+
+Actuals          ::= Expr ActualsCommaExpr
+                   | ;
+ActualsCommaExpr ::=    colon_t Expr ActualsCommaExpr | ;
+
+Constant         ::= int_literal_t
+                   | double_literal_t
+                   | string_literal_t
+                   | boolean_literal_t
+                   | null_t;

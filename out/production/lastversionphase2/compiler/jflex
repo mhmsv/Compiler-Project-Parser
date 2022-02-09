@@ -1,0 +1,272 @@
+//package Compiler;
+//salam
+//section 1
+package compiler;
+
+%%
+
+//section 2
+
+%public
+%class lexic //name of the java class
+%column // can retrieve current line using yycloumn()
+%line // can retrieve current line using yyline()
+%unicode //must thing
+%type String
+%state STRING
+%cup
+%state ARRAY
+
+%state DEFINE
+ //state STRING declares a lexical state STRING that can be used in the lexical rules part of the specification
+%{
+  StringBuffer string = new StringBuffer();
+      public Symbol getToken(int type){
+          return new Symbol(type, yytext());
+      }
+%}
+
+/* line 20 to 25 copied from ref manual https://github.com/jflex-de/jflex/blob/master/docs/md/example.md */
+
+
+//comments:
+TraditionalComment   = "/*" [^*] ~"*/" | "/*" "*"+ "/"
+Comment = {TraditionalComment} | {EndOfLineComment} | {DocumentationComment}
+// Comment can be the last line of the file, without line terminator.
+EndOfLineComment     = "//" {InputCharacter}* {LineTerminator}?
+DocumentationComment = "/**" {CommentContent} "*"+ "/"
+CommentContent       = ( [^*] | \*+ [^/*] )*
+
+//whitespase and new line
+
+LineTerminator = \r|\n|\r\n
+InputCharacter = [^\r\n]
+WhiteSpace     = {LineTerminator} | [ \t\f]
+
+//operators
+operator=[\-\+\*\/\%\<\<=\>\>=\=\+=\-=\*=\/=\==\!=\&&\||\!\;\,\.\[\]\(\)\{\}]
+
+//decimal
+
+DecIntegerLiteral = 0 | [1-9][0-9]*
+start0 = [0]*[1-9][0-9]*
+//manfi= -{DecIntegerLiteral}
+//alphabet
+alphabet = [a-zA-z]
+
+//id
+
+underline=[_]
+identifier = [a-zA-z] ({alphabet} |({start0}|{DecIntegerLiteral}) | {underline} )*
+//array = {identifier}"[" {DecIntegerLiteral}"]"
+//string
+
+//"that had just walked in. Hey, he says, \"aren't you a string?\""
+
+//string = \"[^(\\n|\\r)]~\"
+//sreing_inner = \{string}\
+//stringINstring = "\" " "  "\" "
+//boolean
+Boolean = "true"|"false"
+
+
+
+//string = " \"" [^\n\r\"]*  "\" "
+//double
+
+dot = "."
+//se halat double darim mishod yeki nevesht intori rahat tare
+Double1 = ({DecIntegerLiteral}|{start0})+ {dot}
+Double3 = ({start0}|{DecIntegerLiteral})+ {dot} ({DecIntegerLiteral}+|{start0})
+DoubleNumber = ({Double1}   | {Double3})
+ScientificNotation= {DoubleNumber}[eE][+-]?{DecIntegerLiteral}
+
+//punctuations from internet
+Punctuations = "<" | "<=" | ">" | ">=" | "=" | "==" | "!=" | "&&" | "||" | "!" | ";" | "," | "." | "[" | "]" | "(" | ")" | "{" | "}"|"+="|"-="|"*=" |"/="|"+"|"[]"
+
+//hex
+HEX = [a-fA-F]
+HEXNUM = ("OX" | "0x") ( {HEX} | {DecIntegerLiteral} )+
+
+//java reserved keywords
+
+/* downloaded from oracle
+package compiler;
+abstract continue for new switch
+assert*** default goto* package synchronized
+boolean do if private this
+break double implements protected throw
+byte else import public throws
+case enum**** instanceof return transient
+catch extends int short try
+char final interface static void
+class finally long strictfp** volatile
+const* float native super while
+*/
+
+Reserved =  "default"|"continue"|"finally"| "final"|"float"|"instanceof"|"package"| "synchronized"|"this"|"catch"|"try"|"throw"|"volatile"|"dtoi"|"itod" |"btoi"|"itob"|"__line__"|"__func__" | "string"|"bool"|"null"|"NewArray"|"Print"|"ReadInteger"|"ReadLine"|"abstract" | "continue" | "for" | "new" |"switch"| "assert***"| "default"| "goto*"| "package"| "synchronized" | "boolean" | "do" |"if" |"private"| "this"| "break" |"double" |"implements"| "protected"| "throw"| "byte" | "else" |"import"| "public"| "throws"| "case"| "enum****"| "instanceof"| "return"| "transient"| "catch" |"extends"| "int"| "short"| "try"| "char"| "final"| "interface" | "static" | "void" | "class"| "finally"| "long"| "strictfp**"| "volatile"| "const*"| "float"| "native" |"super" |"while"
+
+
+
+
+
+%%
+//section 3
+
+
+<YYINITIAL> {
+
+
+//comments
+{Comment}                                         {/* comment */}
+
+//defines
+//"DEFINE"                                          {yybegin(DEFINE); }
+
+
+//changedphase2 {operator}                                        {return yytext();}
+//punctuations
+//changed phase2 {Punctuations}                                    {return yytext();}
+//============== operators
+
+    "+"                  {return getToken(sym.plus_t);}
+    "-"                  {return getToken(sym.minus_t);}
+    "*"                  {return getToken(sym.multi_t);}
+    "/"                  {return getToken(sym.divide_t);}
+    "%"                  {return getToken(sym.remind_t);}
+    "="                  {return getToken(sym.assign_t);}
+    "<"                  {return getToken(sym.less_t);}
+    "<="                 {return getToken(sym.less_equal_t);}
+    ">"                  {return getToken(sym.great_t);}
+    ">="                 {return getToken(sym.great_equal_t);}
+    "=="                 {return getToken(sym.equal_t);}
+    "!="                 {return getToken(sym.not_equal_t);}
+    "&&"                 {return getToken(sym.and_t);}
+    "||"                 {return getToken(sym.or_t);}
+    "!"                  {return getToken(sym.not_t);}
+    ";"                  {return getToken(sym.semi_colon_t);}
+    ","                  {return getToken(sym.colon_t);}
+    "."                  {return getToken(sym.dot_t);}
+    "["                  {return getToken(sym.open_brace_t);}
+    "]"                  {return getToken(sym.close_brace_t);}
+    "[]"                 {return getToken(sym.open_close_brace_t);}
+    "("                  {return getToken(sym.open_parantheses_t);}
+    ")"                  {return getToken(sym.close_parantheses_t);}
+    "{"                  {return getToken(sym.open_bracket_t);}
+    "}"                  {return getToken(sym.close_bracket_t);}
+    "true"               {return getToken(sym.boolean_literal_t);}//****
+    "false"              {return getToken(sym.boolean_literal_t);}//****
+//=======
+
+
+//keywords
+// changed for phase 2{Reserved}                                        {return yytext();}
+//================keyword
+    "int"                {return getToken(sym.int_t);}
+    "void"               { return getToken(sym.void_t);}
+    "double"             {return getToken(sym.double_t);}
+    "bool"               {return getToken(sym.bool_t);}
+    "string"             {return getToken(sym.string_t);}
+    "class"              {return getToken(sym.class_t);}
+    "interface"          {return getToken(sym.interface_t);}
+    "null"               {return getToken(sym.null_t);}
+    "this"               {return getToken(sym.this_t);}
+    "extends"            {return getToken(sym.extends_t);}
+    "implements"         {return getToken(sym.implements_t);}
+    "for"                {return getToken(sym.for_t);}
+    "while"              {return getToken(sym.while_t);}
+    "if"                 {return getToken(sym.if_t);}
+    "else"               {return getToken(sym.else_t);}
+    "return"             {return getToken(sym.return_t);}
+    "break"              {return getToken(sym.break_t);}
+    "continue"           {return getToken(sym.continue_t);}
+    "new"                {return getToken(sym.new_t);}
+    "NewArray"           {return getToken(sym.newArray_t);}
+    "Print"              {return getToken(sym.print_t);}
+    "ReadInteger"        {return getToken(sym.Readinteger_t);}
+    "ReadLine"           {return getToken(sym.Readline_t);}
+    "dtoi"               {return getToken(sym.dtoi_t);}
+    "itod"               {return getToken(sym.itod_t);}
+    "btoi"               {return getToken(sym.btoi_t);}
+    "itob"               {return getToken(sym.itob_t);}
+    "private"            {return getToken(sym.private_t);}
+    "protected"          {return getToken(sym.protected_t);}
+    "public"             {return getToken(sym.public_t);}
+//====================
+//operators
+
+//boolean
+//{Boolean}                                         {return ("T_BOOLEANLITERAL" + " " + yytext());}
+//LINE ABOVE IT'S COMENTED FOR PHase 2 and has no replacment it has handled in keywords!
+
+//hexnumber
+{HEXNUM}                                          {return getToken(sym.int_literal_t);}
+
+{start0}                                           {return getToken(sym.int_literal_t);}
+//{manfi}                                           {return ("T_INTLITERAL" + " " + yytext());}
+
+
+//{array}                                           {return("["+"\n"+"T_ID"+ "\n" + yytext()+"\n"+"]");}
+//arrraaaaay
+
+//{identifier}"["{DecIntegerLiteral}[^\"]                             {  return("T_ID "+yytext().substring(0,yytext().indexOf("[")) + '\n'+ "[" + '\n' + "T_INTLITERAL "  +yytext().substring(yytext().indexOf("[")+1,yytext().length()-1) +'\n' + "]" );}
+//line above it;s changed to line below fpor phase2
+
+//*******************
+{identifier}"["{DecIntegerLiteral}[^\"]                                 { return getToken(sym.array_t);}
+//****************
+
+
+//{identifier}                                 {return ("T_ID"+ " " + yytext());}
+//line above for identifier it's changed to line below phASE2
+{identifier}                                    {return getToken(sym.id_t);}
+
+
+//double
+{DoubleNumber}                                    {return getToken(sym.double_literal_t);}
+
+//*************
+{ScientificNotation}                               {return getToken(sym.double_literal_t);}
+//***********
+//string start
+
+
+\"                             { string.setLength(0); yybegin(STRING); }
+
+//white space
+{WhiteSpace}                                      {/* white space */}
+
+
+
+
+
+
+{DecIntegerLiteral}                               {return getToken(sym.int_literal_t);}
+
+
+
+
+//{string}             { return("T_STRINGLITERAL " + yytext() +"\n");}
+
+}
+
+<STRING> {
+  \"                             { yybegin(YYINITIAL);  return getToken(sym.string_literal_t);}
+
+  //this line it's changed to line above for phase 2                                  return("T_STRINGLITERAL " +'"'+string.toString())+'"' ;}
+  [^\n\r\"\\]+                   { string.append( yytext() ); }
+  \\t                            { string.append('\t'); }
+ // \\n                            { string.append('\n'); }
+
+  \\r                            { string.append('\r'); }
+  \\\"                           { string.append("\\\""); }
+  \\                             { string.append('\\');                  }
+}
+
+//<ARRAY> {
+//   \a                                {return("dssdsdsdsfs");}
+  //\]                             { yybegin(YYINITIAL);
+    //                                return("]");}
+//  \[                            { return("]");}
+//{DecIntegerLiteral}                               {return ("T_INTLITERAL" + " " + yytext());}
+//}

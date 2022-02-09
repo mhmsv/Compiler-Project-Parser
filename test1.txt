@@ -1,0 +1,6 @@
+
+
+int main() {
+	int another_folaan;
+	another_folaan = 5;
+}
